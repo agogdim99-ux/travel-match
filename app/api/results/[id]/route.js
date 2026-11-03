@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
+import { withDetails } from '@/lib/details';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,22 +19,26 @@ export async function GET(req, { params }) {
     const ids = [r.top_destination_id, ...r.candidates];
     const { data: dests, error: e2 } = await db().from('destinations').select('*').in('id', ids);
     if (e2) throw e2;
-    const byId = Object.fromEntries(dests.map((d) => [d.id, d]));
-    const top = byId[r.top_destination_id];
-    let pair = null;
-    if (top?.pair_id) {
-      const { data: p } = await db().from('destinations').select('*').eq('id', top.pair_id).maybeSingle();
-      pair = p;
+    const pairIds = dests.map((d) => d.pair_id).filter(Boolean);
+    let pairs = [];
+    if (pairIds.length) {
+      const { data: p } = await db().from('destinations').select('id, city, country, emoji, summary, advisory_level, caution').in('id', pairIds);
+      pairs = p || [];
     }
+    const byId = Object.fromEntries(dests.map((d) => [d.id, withDetails(d)]));
+    const pairById = Object.fromEntries(pairs.map((d) => [d.id, d]));
+    const top = (r.result?.top || ids.map((x) => ({ id: x, match: null, why: [] })))
+      .map((t) => ({ ...t, d: byId[t.id], pair: byId[t.id]?.pair_id ? pairById[byId[t.id].pair_id] : null }))
+      .filter((t) => t.d);
     return NextResponse.json({
       id: r.id,
       nickname: r.nickname,
       memo: r.memo,
       created_at: r.created_at,
       isMine: owner === r.owner_key,
+      cond: r.cond,
+      result: r.result ? { type: r.result.type, order: r.result.order, sc: r.result.sc, picked: r.result.picked } : null,
       top,
-      pair,
-      candidates: r.candidates.map((c) => byId[c]).filter(Boolean),
     });
   } catch (e) {
     return NextResponse.json({ error: '결과를 불러오지 못했어요.', detail: e.message }, { status: 500 });

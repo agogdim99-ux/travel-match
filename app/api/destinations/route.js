@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
+import { withDetails } from '@/lib/details';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,7 @@ export async function GET(req) {
     query = sort === 'advisory' ? query.order('advisory_level', { ascending: false }) : query.order('region').order('country');
     const { data, error } = await query;
     if (error) throw error;
-    return NextResponse.json(data);
+    return NextResponse.json(data.map(withDetails));
   } catch (e) {
     return NextResponse.json({ error: '여행지를 불러오지 못했어요.', detail: e.message }, { status: 500 });
   }

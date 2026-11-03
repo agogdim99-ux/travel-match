@@ -25,7 +25,8 @@ create table if not exists destinations (
   advisory_note text,
   caution boolean not null default false,
   news_title text,
-  news_url text
+  news_url text,
+  details jsonb not null default '{}'::jsonb
 );
 
 -- (이미 표를 만들었다면 아래 줄이 새 칸만 추가해 줘요)
@@ -49,6 +50,8 @@ create table if not exists results (
   top_destination_id text not null references destinations(id),
   candidates text[] not null default '{}',
   memo text check (char_length(memo) <= 200),
+  cond jsonb,
+  result jsonb,
   created_at timestamptz not null default now()
 );
 
