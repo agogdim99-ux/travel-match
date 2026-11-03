@@ -8,7 +8,7 @@ async function wikiImage(title) {
     if (!r.ok) return null;
     const j = await r.json();
     const src = j.thumbnail?.source || j.originalimage?.source;
-    return src ? { src: src.replace(/\/\d+px-/, '/800px-'), page: j.content_urls?.desktop?.page } : null;
+    return src ? { src: src.replace(/\/\d+px-/, '/960px-'), page: j.content_urls?.desktop?.page } : null;
   } catch { return null; }
 }
 
