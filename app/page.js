@@ -86,7 +86,7 @@ export default function Home() {
               <div className="chips">
                 {c.o.map(([v, l]) => (
                   <button type="button" key={v} className={`chip-btn ${cond[k] === v ? 'on' : ''}`} aria-pressed={cond[k] === v}
-                    onClick={() => setCond({ ...cond, [k]: v })}>{l}</button>
+                    onClick={() => setCond(c0 => ({ ...c0, [k]: v }))}>{l}</button>
                 ))}
               </div>
             </div>
